@@ -88,6 +88,7 @@ const label = args[1] || new Date().toISOString().replace(/[:.]/g, '-');
       const overlap = await page.evaluate((y) => {
         let n = 0;
         for (const e of document.querySelectorAll('button, a, .btn')) {
+          if (e.closest('nav, .bottom-nav')) continue; // nav's own buttons aren't "covered"
           const r = e.getBoundingClientRect();
           if (r.top < y && r.bottom > y) n++;
         }
@@ -96,7 +97,6 @@ const label = args[1] || new Date().toISOString().replace(/[:.]/g, '-');
       if (overlap > 0) problems.push(`elements covered by nav: ${overlap}`);
     }
   }
-
   // 6. Viewport meta + PWA installability signals
   const meta = await page.evaluate(() => ({
     viewport: !!document.querySelector('meta[name=viewport]'),

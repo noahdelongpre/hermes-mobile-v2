@@ -1,0 +1,29 @@
+/* theme.css — single source of UI colors/spacing. Dark only. */
+:root{
+  --bg:#171511; --card:#221f1b; --card2:#2a2620; --border:#3a3630;
+  --fg:#e8e2d9; --muted:#9a938a; --accent:#e8a33d; --accent2:#c9563c; --ok:#57a55a; --err:#c9563c;
+  --mono:ui-monospace,'Cascadia Code',consolas,monospace;
+  --radius:10px; --nav-h:56px;
+}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{margin:0;padding:0;background:var(--bg);color:var(--fg);font:15px/1.5 system-ui,-apple-system,'Segoe UI',sans-serif}
+body{min-height:100vh;padding-bottom:calc(var(--nav-h) + env(safe-area-inset-bottom,0px) + 96px)}
+button,.btn{min-height:44px;min-width:44px;border:1px solid var(--border);background:var(--card);color:var(--fg);border-radius:8px;font-size:14px;padding:8px 14px;cursor:pointer}
+button.primary{background:var(--accent);color:#171511;font-weight:600}
+button.danger{border-color:var(--err);color:var(--err)}
+.card{background:var(--card);border:1px solid var(--border);border-radius:var(--radius);padding:12px;margin:8px 0}
+.chip{display:inline-flex;align-items:center;gap:4px;background:var(--card2);border:1px solid var(--border);border-radius:99px;padding:3px 10px;font-size:12px;color:var(--muted)}
+pre,code{font-family:var(--mono);font-size:13px}
+pre{background:#14120e;border:1px solid var(--border);border-radius:8px;padding:10px;overflow-x:auto}
+.diff-add{color:var(--ok);background:#1a3015}
+.diff-sub{color:var(--err);background:#331512}
+.bottom-nav{position:fixed;bottom:0;left:0;right:0;height:calc(var(--nav-h) + env(safe-area-inset-bottom,0px));display:flex;background:#14120e;border-top:1px solid var(--border);padding-bottom:env(safe-area-inset-bottom,0px);z-index:50}
+.bottom-nav button{flex:1;border:0;border-radius:0;min-height:var(--nav-h);background:transparent;color:var(--muted);font-size:12px;min-width:0}
+.bottom-nav button.active{color:var(--accent);font-weight:700}
+.sheet{position:fixed;left:0;right:0;bottom:0;background:var(--card);border-top:1px solid var(--border);border-radius:16px 16px 0 0;padding:16px;z-index:60;max-height:70vh;overflow-y:auto;transform:translateY(100%);transition:transform .2s}
+.sheet.open{transform:translateY(0)}
+.toast{position:fixed;top:12px;left:50%;transform:translateX(-50%);background:var(--card2);border:1px solid var(--border);padding:10px 18px;border-radius:99px;z-index:99;font-size:13px}
+#app{padding:12px}
+.muted{color:var(--muted)} .err{color:var(--err)} .ok{color:var(--ok)}
+input,textarea,select{background:var(--card);border:1px solid var(--border);color:var(--fg);border-radius:8px;font:inherit;padding:10px;min-height:44px}
+.testing-badge{position:fixed;top:6px;right:8px;font-size:12px;color:var(--muted)}
