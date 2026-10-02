@@ -26,26 +26,29 @@ h1{font-size:17px;margin-bottom:2px} .sub{color:var(--muted);font-size:12px;marg
 </head>
 <body>
 <h1>Hermes Mobile v2 — Workstreams</h1>
-<div class="sub">C:\git\hermes-mobile-v2 · updated by lead agent · last: wave-2 (C/I/F) verified — 10/10 E2E + all unit suites green</div>
+<div class="sub">C:\git\hermes-mobile-v2 · updated by lead agent · last: B+G shipped — ALL workstreams done; unit suites 200+ green, 10/10 E2E</div>
 <div class="board">
   <div class="col"><h2>Backlog</h2>
-    <div class="card"><b>C · Files (tree/editor/search)</b><span class="tag">wave 2 ✓ integrated</span></div>
-    <div class="card"><b>I · Slash + model picker</b><span class="tag">wave 2 ✓ integrated</span></div>
-    <div class="card"><b>F · Voice STT/TTS</b><span class="tag">wave 2 ✓ integrated</span></div>
-    <div class="card"><b>H · Kanban module</b><span class="tag">wave 3</span></div>
-    <div class="card"><b>D · Git explorer</b><span class="tag">wave 3</span></div>
+    <div class="card"><b>Phone sign-off</b><div class="d">Test on S24 Ultra over Tailscale (:8124), then cutover to BlackBox:</div><span class="tag">user gate</span></div>
   </div>
   <div class="col wip"><h2>In Progress</h2>
     <div class="card"><b>Shared kernel</b><div class="d">server.js, hermes_client, run/session routes, comm.js, theme.css, S24 Ultra playwright gate — DONE, chat E2E green</div><span class="tag">lead ✓</span></div>
-    <div class="card"><b>A · Chat &amp; rendering</b><span class="tag">wave 1 ✓ integrated</span></div>
-    <div class="card"><b>E · Terminal</b><span class="tag">wave 1 ✓ integrated</span></div>
-    <div class="card"><b>J · Attachments</b><span class="tag">wave 1 ✓ integrated</span></div>
   </div>
   <div class="col done"><h2>Review / Done</h2>
-    <div class="card"><b>Research &amp; plan</b><div class="d">Feature survey of Happy/CloudCLI/Terragon/Vibe Kanban/OpenCode; PLAN.md, FEATURES.md written</div></div>
+    <div class="card"><b>Research & plan</b><div class="d">Feature survey of Happy/CloudCLI/Terragon/Vibe Kanban/OpenCode; PLAN.md, FEATURES.md written</div></div>
     <div class="card"><b>Board setup</b><div class="d">Wrong-way DoneTick tasks removed; this board created</div></div>
+    <div class="card"><b>A · Chat & rendering</b><span class="tag">wave 1 ✓</span></div>
+    <div class="card"><b>E · Terminal</b><span class="tag">wave 1 ✓</span></div>
+    <div class="card"><b>J · Attachments</b><span class="tag">wave 1 ✓</span></div>
+    <div class="card"><b>C · Files</b><span class="tag">wave 2 ✓ (30/30 unit)</span></div>
+    <div class="card"><b>I · Slash + model picker</b><span class="tag">wave 2 ✓ (11/11)</span></div>
+    <div class="card"><b>F · Voice STT/TTS</b><span class="tag">wave 2 ✓ (9/9)</span></div>
+    <div class="card"><b>D · Git explorer</b><span class="tag">✓ (27/27, S24 green)</span></div>
+    <div class="card"><b>H · Kanban tri-view</b><span class="tag">✓ (23/23, S24 green)</span></div>
+    <div class="card"><b>B · Sessions & history</b><div class="d">real-session spine: /new creates upstream session, sends bind session_id (history persists), resume loads transcript incl. tool cards, rename/fork/archive/delete, session sheet + long-press menu</div><span class="tag">✓ (15/15)</span></div>
+    <div class="card"><b>G · Notifications & approvals</b><div class="d">approval.request inline card w/ 44px choice buttons (once/session/always/deny, request_id), /api/run/:id/approval choice+alias fix, Notification API + boot permission prompt, notify on run completed</div><span class="tag">✓ (10/10)</span></div>
   </div>
 </div>
-<div class="meta">Backlog holds wave-2 items too once wave-1 cards move right. Sign-off gate: user review before BlackBox cutover.</div>
+<div class="meta">E2E 10/10 · S24 visual gates green (chat/git/board). Sign-off gate: user review before BlackBox cutover.</div>
 </body>
 </html>
