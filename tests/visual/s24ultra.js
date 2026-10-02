@@ -25,6 +25,12 @@ const dprIdx = args.indexOf('--dpr');
 if (dprIdx > -1) { dpr = parseFloat(args[dprIdx + 1]); args.splice(dprIdx, 2); }
 const url = args[0] || 'http://localhost:8123/';
 const label = args[1] || new Date().toISOString().replace(/[:.]/g, '-');
+// --tab <name>: after load, switch the app shell to that tab (e.g. --tab git)
+// before running the checks — used to screenshot individual tabs like Git.
+const tabIdx = args.indexOf('--tab');
+const tabName = tabIdx > -1 ? args[tabIdx + 1] : null;
+if (tabIdx > -1) args.splice(tabIdx, 2);
+const tabUri = tabName ? `#${tabName}` : null;
 
 (async () => {
   const browser = await chromium.launch();
@@ -35,6 +41,12 @@ const label = args[1] || new Date().toISOString().replace(/[:.]/g, '-');
   page.on('pageerror', e => problems.push('pageerror: ' + e.message));
 
   await page.goto(url, { waitUntil: 'networkidle', timeout: 30000 });
+  // Switch to the requested tab (bottom-nav tap, like a real user) and let the
+  // tab module finish rendering before the layout checks run.
+  if (tabUri) {
+    await page.click(`.bottom-nav button[data-tab="${tabName}"]`);
+    await page.waitForTimeout(1200);
+  }
 
   // 1. No horizontal overflow (mobile cardinal sin)
   const overflow = await page.evaluate(() =>
