@@ -1,0 +1,51 @@
+{
+  "model_options": {
+    "status": 200,
+    "topKeys": [
+      "providers",
+      "model",
+      "provider"
+    ],
+    "provider0": [
+      "slug",
+      "name",
+      "is_current",
+      "is_user_defined",
+      "models",
+      "total_models",
+      "source",
+      "authenticated",
+      "auth_type",
+      "key_env",
+      "warning",
+      "capabilities",
+      "featured_models"
+    ]
+  },
+  "create_run": {
+    "run_id": "run_35a5390786a24df2ab5bf2757cbdb0a4",
+    "status": "started",
+    "replayed": false
+  },
+  "sse_sample": "data: {\"event\": \"message.delta\", \"run_id\": \"run_35a5390786a24df2ab5bf2757cbdb0a4\", \"timestamp\": 1790904205.0398943, \"delta\": \"PROBE-OK\"}\n\ndata: {\"event\": \"reasoning.available\", \"run_id\": \"run_35a5390786a24df2ab5bf2757cbdb0a4\", \"timestamp\": 1790904205.0483036, \"text\": \"PROBE-OK\"}\n\ndata: {\"event\": \"run.completed\", \"run_id\": \"run_35a5390786a24df2ab5bf2757cbdb0a4\", \"timestamp\": 1790904205.0611148, \"output\": \"PROBE-OK\", \"usage\": {\"input_tokens\": 18183, \"output_tokens\": 50, \"total_tokens\": 18233}, \"completed\": true, \"partial\": false, \"interrupted\": false}\n\n: stream closed\n\n",
+  "sse_event_types": [],
+  "run_status": {
+    "object": "hermes.run",
+    "run_id": "run_35a5390786a24df2ab5bf2757cbdb0a4",
+    "status": "completed",
+    "updated_at": 1790904205.0611148,
+    "created_at": 1790904204.2146962,
+    "session_id": "run_35a5390786a24df2ab5bf2757cbdb0a4",
+    "model": "hermes-agent",
+    "last_event": "run.completed",
+    "output": "PROBE-OK",
+    "usage": {
+      "input_tokens": 18183,
+      "output_tokens": 50,
+      "total_tokens": 18233
+    },
+    "completed": true,
+    "partial": false,
+    "interrupted": false
+  }
+}

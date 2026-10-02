@@ -1,0 +1,46 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Hermes Mobile v2 — Agent Kanban</title>
+<style>
+:root{
+  --fg:#e8e2d9; --muted:#9a938a; --accent:#e8a33d; --border:#3a3630;
+  --card:#221f1b; --bg:#17151100;
+}
+*{box-sizing:border-box;margin:0;padding:0}body{background:transparent;color:var(--fg);font:14px/1.45 system-ui,sans-serif;padding:14px}
+h1{font-size:17px;margin-bottom:2px} .sub{color:var(--muted);font-size:12px;margin-bottom:12px}
+.board{display:flex;gap:10px;align-items:flex-start}
+.col{flex:1;min-width:170px;background:#1d1b17;border:1px solid var(--border);border-radius:10px;padding:10px}
+.col h2{font-size:12px;text-transform:uppercase;letter-spacing:.08em;color:var(--muted);margin-bottom:8px}
+.card{background:var(--card);border:1px solid var(--border);border-left:3px solid var(--accent);border-radius:8px;padding:8px 10px;margin-bottom:8px;font-size:13px}
+.card b{display:block;font-size:13px}
+.card .d{color:var(--muted);font-size:11px;margin-top:3px}
+.tag{display:inline-block;font-size:10px;padding:1px 6px;border-radius:99px;border:1px solid var(--border);color:var(--muted);margin-top:6px}
+.done .card{opacity:.65;border-left-color:#57a55a}
+.wip .card{border-left-color:#c9563c}
+.meta{margin-top:14px;font-size:11px;color:var(--muted)}
+</style>
+</head>
+<body>
+<h1>Hermes Mobile v2 — Workstreams</h1>
+<div class="sub">C:\git\hermes-mobile-v2 · updated by lead agent · last: plan complete, awaiting wave-1 dispatch</div>
+<div class="board">
+  <div class="col"><h2>Backlog</h2>
+    <div class="card"><b>H · Kanban module</b><span class="tag">wave 3</span></div>
+    <div class="card"><b>D · Git explorer</b><span class="tag">wave 3</span></div>
+  </div>
+  <div class="col wip"><h2>In Progress</h2>
+    <div class="card"><b>Shared kernel</b><div class="d">server.js, comm.js, theme.css, index shell</div><span class="tag">lead</span></div>
+    <div class="card"><b>A · Chat &amp; rendering</b><span class="tag">wave 1</span></div>
+    <div class="card"><b>E · Shell/PTY terminal</b><span class="tag">wave 1</span></div>
+    <div class="card"><b>F · Voice STT/TTS</b><span class="tag">wave 1</span></div>
+  </div>
+  <div class="col done"><h2>Review / Done</h2>
+    <div class="card"><b>Research &amp; plan</b><div class="d">Feature survey of Happy/CloudCLI/Terragon/Vibe Kanban/OpenCode; PLAN.md, FEATURES.md written</div></div>
+    <div class="card"><b>Board setup</b><div class="d">Wrong-way DoneTick tasks removed; this board created</div></div>
+  </div>
+</div>
+<div class="meta">Backlog holds wave-2 items too once wave-1 cards move right. Sign-off gate: user review before BlackBox cutover.</div>
+</body>
+</html>
