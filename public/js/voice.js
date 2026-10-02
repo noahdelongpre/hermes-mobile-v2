@@ -144,9 +144,11 @@ MODULES.voice = (() => {
     if (!c || !msgBox || c.querySelector('.voice-ptt')) return;
     voice.wired = true;
     composerEl = c.querySelector('#composer') || c.querySelector('input');
-    const send = c.querySelector('#send');
+    const tr = document.getElementById('toolrow');
     const btn = buildMicButton();
-    if (send) c.insertBefore(btn, send); else c.appendChild(btn);
+    if (tr && !tr.querySelector('.voice-ptt')) tr.appendChild(btn);
+    else if (tr) { /* already wired */ }
+    else { const send = c.querySelector('#send'); if (send) c.insertBefore(btn, send); else c.appendChild(btn); }
     // observe assistant cards for TTS buttons
     msgBox.dataset.voiceTts = '1';
     new MutationObserver(muts => {

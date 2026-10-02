@@ -10,17 +10,37 @@ MODULES.chat = (() => {
   const chips = [];
 
   function render(el) {
+    // messaging-app shell: header / scrollable timeline / tool row above / input+send at bottom
+    el.id = 'chatroot';
     el.innerHTML = `
-      <div id="tl"></div>
-      <div class="composer" style="position:sticky;bottom:calc(var(--nav-h) + env(safe-area-inset-bottom,0px) + 8px);display:flex;gap:6px">
-        <input id="composer" placeholder="Message…" autocomplete="off" style="flex:1">
-        <button id="send" class="primary">➤</button>
-        <button id="stop" class="danger">■</button>
+      <div class="chat-head">
+        <button id="sessions-open" class="btn" title="sessions" style="min-width:44px;font-size:18px">≡</button>
+        <div class="chat-title" id="chat-title">New chat</div>
+        <button id="session-rename" class="btn" title="rename" style="min-width:44px">✎</button>
+      </div>
+      <div class="scrollpane" id="tl"></div>
+      <div class="toolrow" id="toolrow"></div>
+      <div class="composer">
+        <textarea id="composer" rows="1" placeholder="Message…"></textarea>
+        <button id="send" class="primary" title="send">➤</button>
+        <button id="stop" class="danger" title="stop run" style="display:none">■</button>
       </div>`;
     msgBox = el.querySelector('#tl'); composer = el.querySelector('#composer');
     el.querySelector('#send').onclick = send;
-    el.querySelector('#stop').onclick = () => sessionRunId && API.post(`/api/run/${sessionRunId}/stop`);
+    const stopBtn = el.querySelector('#stop');
+    stopBtn.onclick = () => sessionRunId && API.post(`/api/run/${sessionRunId}/stop`);
     composer.addEventListener('keydown', e => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); send(); } });
+    composer.addEventListener('input', () => { composer.style.height = 'auto'; composer.style.height = Math.min(composer.scrollHeight, 120) + 'px'; });
+    el.querySelector('#sessions-open').onclick = () => bus.emit('sessions:open', {});
+    bus.on('run:started', () => { stopBtn.style.display = ''; });
+    bus.on('run:completed', () => { stopBtn.style.display = 'none'; });
+    bus.on('run:failed', () => { stopBtn.style.display = 'none'; });
+    // title sync: current session title from sessions module (list cache)
+    bus.on('session:switch', ({ conversation }) => {
+      const t = document.getElementById('chat-title');
+      const named = conversation && localStorage.getItem('hm2.session.title.' + conversation);
+      t.textContent = named || (conversation ? conversation.slice(0, 14) : 'New chat');
+    });
   }
 
   function mdHtml(text) { return MD.render(text); }

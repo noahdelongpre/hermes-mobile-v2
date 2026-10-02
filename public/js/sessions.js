@@ -129,6 +129,7 @@ MODULES.sessions = (() => {
       const j = await API.json('/api/session/list?limit=50');
       rows = j.sessions || [];
     } catch (e) { list.textContent = ''; const d = document.createElement('div'); d.className = 'muted'; d.textContent = 'list failed: ' + e.message; list.appendChild(d); return; }
+    try { for (const r of rows) if (r.title) localStorage.setItem('hm2.session.title.' + r.id, r.title); } catch {}
     list.textContent = '';
     if (!rows.length) { const d = document.createElement('div'); d.className = 'muted'; d.textContent = 'no sessions yet'; list.appendChild(d); }
     for (const r of rows) {
@@ -178,12 +179,20 @@ MODULES.sessions = (() => {
     const c = document.querySelector('.composer');
     if (!c) { if (++mountTries < 40) setTimeout(mount, 250); return; }
     if (c.querySelector('.sessions-btn')) return;
-    const b = document.createElement('button');
-    b.type = 'button'; b.textContent = '≡'; b.title = 'sessions'; b.className = 'btn sessions-btn';
-    b.style.cssText = 'min-width:44px;min-height:44px;font-size:18px;padding:0 10px';
+    // header-defined ≡ button (chat-head #sessions-open) is our primary trigger;
+    // mark composer presence for tests and fall back to injecting if header wasn't rendered.
+    let b = document.getElementById('sessions-open');
+    if (!b) {
+      b = document.createElement('button');
+      b.textContent = '≡'; b.title = 'sessions'; b.className = 'btn sessions-btn';
+      b.style.cssText = 'min-width:44px;min-height:44px;font-size:18px;padding:0 10px';
+      const first = c.firstElementChild;
+      c.insertBefore(b, first);
+    }
+    b.classList.add('sessions-btn');
     b.onclick = () => openList();
-    const first = c.querySelector('.model-btn') || c.firstElementChild;
-    c.insertBefore(b, first);
+    const rb = document.getElementById('session-rename');
+    if (rb && !rb.dataset.wired) { rb.dataset.wired = '1'; rb.onclick = () => { const id = cur(); const rowsById = rows.find(r => r.id === id) || {}; if (id) rename({ id, title: rowsById.title || localStorage.getItem('hm2.session.title.' + id) }); }; }
   }
 
   // boot: remember last session across reloads
@@ -191,6 +200,8 @@ MODULES.sessions = (() => {
   bus.on('tab:switch', n => { if (n === 'chat') { mountTries = 0; mount(); } });
   // slash /new flows here: create a real session and switch to it
   bus.on('session:new', () => { newSession(); });
+  // chat header ≡ opens the sessions sheet
+  bus.on('sessions:open', () => openList());
   // restore: emit the persisted session id once boot finished, so slash.js '/model' keys line up
   setTimeout(() => { const id = cur(); if (id) bus.emit('session:switch', { conversation: id, session_id: id }); }, 100);
 

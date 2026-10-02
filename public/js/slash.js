@@ -200,15 +200,20 @@ MODULES.slash = (() => {
       else if (sheet) renderList(v);
     });
     // '+'-adjacent '⌘' model-picker button (≥44px tap target)
-    if (!composer.querySelector('.model-btn')) {
+    const tr = document.getElementById('toolrow');
+    if (tr && !tr.querySelector('.model-btn')) {
       const b = document.createElement('button');
       b.type = 'button'; b.textContent = '⌘'; b.title = 'model picker'; b.className = 'btn model-btn';
       b.style.cssText = 'min-width:44px;min-height:44px;font-size:18px;padding:0 10px';
       b.onclick = openPicker;
-      const plus = composer.querySelector('.attach-btn');
-      const send = composer.querySelector('#send');
-      const anchor = plus || send || composer.firstElementChild;
-      composer.insertBefore(b, anchor);
+      tr.appendChild(b);
+    } else if (!composer.querySelector('.model-btn') && !tr) {
+      // fallback: composer row if toolrow absent
+      const b = document.createElement('button');
+      b.type = 'button'; b.textContent = '⌘'; b.title = 'model picker'; b.className = 'btn model-btn';
+      b.style.cssText = 'min-width:44px;min-height:44px;font-size:18px;padding:0 10px';
+      b.onclick = openPicker;
+      composer.insertBefore(b, composer.querySelector('#send') || composer.firstElementChild);
     }
   }
 

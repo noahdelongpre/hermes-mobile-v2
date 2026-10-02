@@ -113,15 +113,14 @@ MODULES.attach = (() => {
   // Sandbox for uploaded image previews inside a button menu (pasted/captured images)
   function mount() {
     const composer = document.querySelector('.composer');
-    if (!composer || composer.querySelector('.attach-btn')) return;
+    const toolrow = document.getElementById('toolrow');
+    if (!composer || !toolrow || toolrow.querySelector('.attach-btn')) return;
     root = composer.parentElement;
     ensureInputs();
     const plus = mkBtn('＋', 'Attach files', () => fileInput.click());
+    plus.textContent = '🖼️ +';
     const cam = mkBtn('📷', 'Take photo', () => camInput.click());
-    const send = composer.querySelector('#send');
-    const anchor = send || composer.firstElementChild;
-    composer.insertBefore(plus, anchor);
-    if (send) composer.insertBefore(cam, send);
+    toolrow.append(plus, cam);
     // drag-drop on whole tab content
     document.addEventListener('dragover', e => e.preventDefault());
     document.addEventListener('drop', e => {
