@@ -85,3 +85,10 @@ th{background:var(--card2);font-size:13px}
   .kanban-grid{flex-direction:row}
   .kanban-col{flex:1 1 0}
 }
+
+/* G: approval cards (chat) — warning accent, 44px buttons */
+.approvalcard{border-left:3px solid #c9a227}
+.approvalcard.done{opacity:.7}
+/* B: sessions sheet rows */
+.sessions-item.active{border-color:var(--accent)}
+.sessions-list{max-height:52vh;overflow:auto}

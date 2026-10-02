@@ -37,7 +37,10 @@ function loadWorkspaces() {
   try {
     for (const [k, v] of Object.entries(JSON.parse(fs.readFileSync(path.join(STATE_DIR, 'workspaces.json'), 'utf8')))) workspaces.set(k, v);
   } catch {}
-  if (!workspaces.has('default')) workspaces.set('default', process.env.FS_ROOT || 'C:/git');
+  // env FS_ROOT always wins for 'default' (deploy + test harness contract);
+  // workspaces.json only supplies ADDITIONAL named workspaces.
+  if (process.env.FS_ROOT) workspaces.set('default', process.env.FS_ROOT);
+  else if (!workspaces.has('default')) workspaces.set('default', 'C:/git');
 }
 function saveWorkspaces() {
   fs.writeFileSync(path.join(STATE_DIR, 'workspaces.json'), JSON.stringify(Object.fromEntries(workspaces), null, 2));

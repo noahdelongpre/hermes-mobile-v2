@@ -6,7 +6,7 @@
  * inline [attach:<id> name] render (workstream J) preserved.
  */
 MODULES.chat = (() => {
-  let sessionRunId = null, convo = 'hm2-main', msgBox, composer, streaming = false;
+  let sessionRunId = null, convo = null, msgBox, composer, streaming = false;
   const chips = [];
 
   function render(el) {
@@ -164,7 +164,11 @@ MODULES.chat = (() => {
     streaming = true;
     const bodyEl = appendMsg('hermes', '…');
     bodyEl._raw = '';
-    const payload = { input: text, conversation: convo };
+    const payload = { input: text };
+    // session spine (workstream B): if a real session is active, bind the run to
+    // it (session_id → upstream persists history in that session). Fallback for
+    // no-session state: legacy conversation label so runs stay grouped pre-B.
+    if (convo) payload.session_id = convo; else payload.conversation = 'hm2-main';
     // TODO-verify: workstream I — model_options upstream shape unconfirmed by G/lead.
     // Per-conversation model choice (persisted by slash.js picker in localStorage
     // 'hm2.model.<convo>') → payload {model_options:{provider, name}}. THIS SEND
@@ -195,6 +199,7 @@ MODULES.chat = (() => {
             bodyEl.innerHTML = mdHtml(out);
             MD.enhanceCopy(bodyEl);
             usageChips(ev.usage);
+            notify('run completed', (ev.output || '').slice(0, 100));
             bus.emit('run:completed', ev); streaming = false; break;
           }
           case 'run.failed': case 'run.cancelled':
@@ -215,6 +220,16 @@ MODULES.chat = (() => {
           case 'tool.failed':
             if (tool) tool.setStatus('failed');
             break;
+          case 'approval.request': {
+            if (thinkEl) { thinkEl.done(); thinkEl = null; }
+            const card = approvalCard(ev); // ev.command redacted upstream; ev.request_id, ev.choices
+            msgBox.appendChild(card); scroll();
+            notify(ev.event, ev.command ? 'approval requested: ' + String(ev.command).slice(0, 80) : 'Hermes needs approval');
+            break;
+          }
+          case 'approval.responded':
+            toast('approval resolved: ' + (ev.choice || 'done'));
+            break;
           case 'upstream.error':
             if (thinkEl) { thinkEl.done(); thinkEl = null; }
             bodyEl.innerHTML += `<div class="err">${MD.escapeHtml(ev.error || '[upstream error]')}</div>`;
@@ -228,12 +243,66 @@ MODULES.chat = (() => {
     }
   }
 
+  // ---------------------------------------------------- approval cards (G)
+  function approvalCard(ev) {
+    const choices = Array.isArray(ev.choices) && ev.choices.length ? ev.choices : ['once', 'deny'];
+    const wrap = document.createElement('div');
+    wrap.className = 'card approvalcard';
+    const head = document.createElement('div');
+    head.style.cssText = 'display:flex;align-items:center;gap:8px;margin-bottom:6px';
+    const b = document.createElement('b'); b.textContent = '⚠ Approval needed';
+    head.appendChild(b);
+    const cmd = document.createElement('div');
+    cmd.className = 'mono'; cmd.style.cssText = 'white-space:pre-wrap;font-size:12px;max-height:120px;overflow:auto;color:var(--foreground)';
+    cmd.textContent = ev.command || ev.title || '(tool use)';
+    const row = document.createElement('div');
+    row.style.cssText = 'display:flex;gap:8px;flex-wrap:wrap;margin-top:8px';
+    for (const c of choices) {
+      const btn = document.createElement('button');
+      btn.className = 'btn' + (c === 'once' ? ' primary' : c === 'deny' ? ' danger' : '');
+      btn.textContent = c === 'once' ? '✓ allow once' : c === 'session' ? 'allow session' : c === 'always' ? 'always' : '✕ deny';
+      btn.style.minHeight = '44px';
+      btn.onclick = async () => {
+        btn.disabled = true;
+        try {
+          await API.post(`/api/run/${sessionRunId}/approval`, { choice: c, request_id: ev.request_id || undefined });
+          toast('approval sent: ' + c);
+          wrap.classList.add('done'); row.remove();
+          const st = document.createElement('div'); st.className = 'muted'; st.style.fontSize = '11px'; st.textContent = '→ ' + c;
+          wrap.appendChild(st);
+        } catch (e) { toast('approval failed: ' + e.message); btn.disabled = false; }
+      };
+      row.appendChild(btn);
+    }
+    wrap.append(head, cmd, row);
+    return wrap;
+  }
+
+  // ------------------------------------------------- notifications (G, zero-dep)
+  function notify(title, body) {
+    try {
+      if (!('Notification' in window)) return;
+      if (Notification.permission === 'granted') { new Notification(title, { body: (body || '').slice(0, 120), tag: 'hm2-' + title }); return; }
+      if (Notification.permission === 'default') Notification.requestPermission(); // ask on first event; no nag
+    } catch {}
+  }
+
   function appendUsage(u) { usageChips(u); } // back-compat alias
 
   bus.on('attach:chips', list => { chips.length = 0; chips.push(...list.map(c => c.name || c)); });
   bus.on('session:switch', ({ conversation }) => {
-    convo = conversation; msgBox && (msgBox.innerHTML = '');
+    convo = conversation || null; msgBox && (msgBox.innerHTML = '');
     sessionRunId = null; thinkEl = null; streaming = false;
+  });
+  // workstream B: render saved transcript when a session is resumed
+  bus.on('session:history', ({ items }) => {
+    if (!msgBox) return;
+    msgBox.replaceChildren(); // clear timeline without innerHTML strings
+    for (const it of (items || [])) {
+      if (it._tool) { const t = toolCard(it.name, {}, 'done'); t.appendOut(it.output || ''); msgBox.appendChild(t.el); continue; }
+      const bodyEl = appendMsg(it.role, it.text || '');
+      bodyEl._raw = it.text || '';
+    }
   });
   return { render, toolCard, thinkingBlock, usageChips, _mdHtml: mdHtml };
 })();

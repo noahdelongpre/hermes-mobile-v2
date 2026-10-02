@@ -9,9 +9,9 @@ module.exports = { register(app) {
   const { hermes, stateDir, log } = app.ctx;
 
   app.post('/api/run/create', async (req, res) => {
-    const { input, conversation, model_options, workspaceId } = req.body || {};
+    const { input, conversation, session_id, model_options, workspaceId } = req.body || {};
     if (!input || typeof input !== 'string') { app.ctx.log('run/create REJECT body=', JSON.stringify(req.body || {}).slice(0, 200), 'ctype=', req.headers['content-type']); return res.status(400).json({ error: 'input required' }); }
-    const body = { input }; if (conversation) body.conversation = conversation;
+    const body = { input }; if (session_id) body.session_id = session_id; if (conversation) body.conversation = conversation;
     if (model_options && typeof model_options === 'object') body.model_options = model_options;
     const r = await hermes.request('POST', '/v1/runs', { body, timeoutMs: 30000 });
     if (r.status !== 200 && r.status !== 202) return res.status(r.status >= 500 ? 502 : r.status).json({ error: r.json?.error || r.text.slice(0, 200) });
@@ -27,7 +27,7 @@ module.exports = { register(app) {
 
   app.get('/api/run/:id/status', async (req, res) => {
     const r = await hermes.request('GET', `/v1/runs/${encodeURIComponent(req.params.id)}`, { timeoutMs: 10000 });
-    res.writeHead(r.status, { 'content-type': 'application/json' }); res.end(r.text);
+    res.raw.writeHead(r.status, { 'content-type': 'application/json' }); res.raw.end(r.text);
   });
 
   app.get('/api/run/:id/events', async (req, res) => {
@@ -60,19 +60,22 @@ module.exports = { register(app) {
 
   app.post('/api/run/:id/stop', async (req, res) => {
     const r = await hermes.request('POST', `/v1/runs/${encodeURIComponent(req.params.id)}/stop`, { body: {}, timeoutMs: 15000 });
-    res.writeHead(r.status || 200, { 'content-type': 'application/json' }); res.end(r.text);
+    res.raw.writeHead(r.status || 200, { 'content-type': 'application/json' }); res.raw.end(r.text);
   });
 
   app.post('/api/run/:id/approval', async (req, res) => {
-    const { decision } = req.body || {};
-    if (!decision) return res.status(400).json({ error: 'decision required' });
-    const r = await hermes.request('POST', `/v1/runs/${encodeURIComponent(req.params.id)}/approval`, { body: req.body, timeoutMs: 30000 });
-    log('approval', req.params.id, decision, '→', r.status);
-    res.writeHead(r.status || 200, { 'content-type': 'application/json' }); res.end(r.text);
+    // Upstream contract (verified in gateway api_server_runs.py): {choice, request_id?}
+    // where choice ∈ once|session|always|deny. Legacy 'decision' accepted as alias.
+    const body = req.body || {};
+    if (!body.choice && !body.decision) return res.status(400).json({ error: 'choice required (once|session|always|deny)' });
+    if (!body.choice && body.decision) body.choice = body.decision;
+    const r = await hermes.request('POST', `/v1/runs/${encodeURIComponent(req.params.id)}/approval`, { body, timeoutMs: 30000 }).catch(e => ({ status: 502, text: JSON.stringify({ error: String(e.message || e).slice(0, 200) }) }));
+    log('approval', req.params.id, body.choice, '→', r.status);
+    res.raw.writeHead(r.status || 200, { 'content-type': 'application/json' }); res.raw.end(r.text);
   });
 
   app.post('/api/run/:id/steer', async (req, res) => {
     const r = await hermes.request('POST', `/v1/runs/${encodeURIComponent(req.params.id)}/steer`, { body: req.body || {}, timeoutMs: 30000 });
-    res.writeHead(r.status || 200, { 'content-type': 'application/json' }); res.end(r.text);
+    res.raw.writeHead(r.status || 200, { 'content-type': 'application/json' }); res.raw.end(r.text);
   });
 } };

@@ -27,6 +27,8 @@ document.getElementById('nav').addEventListener('click', e => {
 window.addEventListener('hashchange', () => { const t = location.hash.slice(1); if (TABS.includes(t)) switchTab(t); });
 
 API.fetch('/api/health').then(r => r.json()).then(h => window.bus.emit('health', h)).catch(() => {});
+// (G) ask for notification permission once, lazily, at boot (no-op if unsupported)
+try { if ('Notification' in window && Notification.permission === 'default') setTimeout(() => Notification.requestPermission(), 4000); } catch {}
 loadModules().then(() => {
   const t = TABS.includes(location.hash.slice(1)) ? location.hash.slice(1) : 'chat';
   switchTab(t);

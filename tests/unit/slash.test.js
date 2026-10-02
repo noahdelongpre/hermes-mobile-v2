@@ -38,8 +38,18 @@ const json = r => { try { return JSON.parse(r.buf.toString('utf8')); } catch { r
   fs.rmSync(skillsCachePath, { force: true });
   fs.rmSync(modelsCachePath, { force: true });
 
+  // Source the gateway key from the host hermes .env (env-var only, never logged)
+  const env = { ...process.env, PORT: String(PORT), AUTH_PASS: '' };
+  if (!env.HERMES_KEY) {
+    const keyPath = path.join(process.env.LOCALAPPDATA || '', 'hermes', '.env');
+    try {
+      const line = (fs.readFileSync(keyPath, 'utf8').split(/\r?\n/).find(l => l.startsWith('API_SERVER_KEY=')) || '');
+      const v = line.slice('API_SERVER_KEY='.length).trim();
+      if (v) env.HERMES_KEY = v;
+    } catch {}
+  }
   const server = spawn(process.execPath, [path.join(ROOT, 'server', 'server.js')], {
-    env: { ...process.env, PORT: String(PORT), AUTH_PASS: '' },
+    env,
     stdio: ['ignore', 'pipe', 'pipe'],
   });
   let srvOut = '';

@@ -5,7 +5,7 @@ const { spawn, execSync } = require('child_process');
 const path = require('path');
 const http = require('http');
 const ROOT = path.resolve(__dirname, '..', '..');
-const PORT = 8137;
+const PORT = process.env.KANBAN_TEST_PORT || 8137;
 
 const child = spawn(process.execPath, [path.join(ROOT, 'server', 'server.js')], {
   env: { ...process.env, PORT: String(PORT), AUTH_PASS: '', DONETICK_URL: 'http://127.0.0.1:8295', DONETICK_KEY: 'stub-key' },
