@@ -1,0 +1,12 @@
+[04:09:47] module attach_routes.js registered
+[04:09:47] module fs_routes.js registered
+[04:09:47] module run_routes.js registered
+[04:09:47] module session_routes.js registered
+[04:09:47] module slash_routes.js registered
+[04:09:47] module term_routes.js registered
+[04:09:47] module voice_routes.js registered
+[04:09:47] hermes-mobile v2 on :8124 (upstream http://127.0.0.1:8642/)
+[04:09:47] [voice] engines: {"ffmpeg":true,"whisperCli":false,"probed":true} WHISPER_URL=
+[04:09:54] term e2e@default cwd=C:\git cmd=echo E2E-TERM-OK
+[04:09:54] term done code=0 in 77ms (13 bytes)
+[04:09:54] skills upstream failed 500 {"error": {"message": "Failed to enumerate skills", "type": "server_error", "param": null, "code": null}}

@@ -2,6 +2,8 @@
 <html lang="en">
 <head>
 <meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#171511">
 <title>Hermes Mobile v2 — Agent Kanban</title>
 <style>
 :root{
@@ -15,26 +17,29 @@ h1{font-size:17px;margin-bottom:2px} .sub{color:var(--muted);font-size:12px;marg
 .col h2{font-size:12px;text-transform:uppercase;letter-spacing:.08em;color:var(--muted);margin-bottom:8px}
 .card{background:var(--card);border:1px solid var(--border);border-left:3px solid var(--accent);border-radius:8px;padding:8px 10px;margin-bottom:8px;font-size:13px}
 .card b{display:block;font-size:13px}
-.card .d{color:var(--muted);font-size:11px;margin-top:3px}
-.tag{display:inline-block;font-size:10px;padding:1px 6px;border-radius:99px;border:1px solid var(--border);color:var(--muted);margin-top:6px}
+.card .d{color:var(--muted);font-size:12px;margin-top:3px}
+.tag{display:inline-block;font-size:12px;padding:1px 6px;border-radius:99px;border:1px solid var(--border);color:var(--muted);margin-top:6px}
 .done .card{opacity:.65;border-left-color:#57a55a}
 .wip .card{border-left-color:#c9563c}
-.meta{margin-top:14px;font-size:11px;color:var(--muted)}
+.meta{margin-top:14px;font-size:12px;color:var(--muted)}
 </style>
 </head>
 <body>
 <h1>Hermes Mobile v2 — Workstreams</h1>
-<div class="sub">C:\git\hermes-mobile-v2 · updated by lead agent · last: plan complete, awaiting wave-1 dispatch</div>
+<div class="sub">C:\git\hermes-mobile-v2 · updated by lead agent · last: wave-2 (C/I/F) verified — 10/10 E2E + all unit suites green</div>
 <div class="board">
   <div class="col"><h2>Backlog</h2>
+    <div class="card"><b>C · Files (tree/editor/search)</b><span class="tag">wave 2 ✓ integrated</span></div>
+    <div class="card"><b>I · Slash + model picker</b><span class="tag">wave 2 ✓ integrated</span></div>
+    <div class="card"><b>F · Voice STT/TTS</b><span class="tag">wave 2 ✓ integrated</span></div>
     <div class="card"><b>H · Kanban module</b><span class="tag">wave 3</span></div>
     <div class="card"><b>D · Git explorer</b><span class="tag">wave 3</span></div>
   </div>
   <div class="col wip"><h2>In Progress</h2>
     <div class="card"><b>Shared kernel</b><div class="d">server.js, hermes_client, run/session routes, comm.js, theme.css, S24 Ultra playwright gate — DONE, chat E2E green</div><span class="tag">lead ✓</span></div>
-    <div class="card"><b>A · Chat &amp; rendering</b><span class="tag">wave 1 · subagent</span></div>
-    <div class="card"><b>E · Shell/PTY terminal</b><span class="tag">wave 1 · subagent</span></div>
-    <div class="card"><b>J · Attachments</b><span class="tag">wave 1 · subagent</span></div>
+    <div class="card"><b>A · Chat &amp; rendering</b><span class="tag">wave 1 ✓ integrated</span></div>
+    <div class="card"><b>E · Terminal</b><span class="tag">wave 1 ✓ integrated</span></div>
+    <div class="card"><b>J · Attachments</b><span class="tag">wave 1 ✓ integrated</span></div>
   </div>
   <div class="col done"><h2>Review / Done</h2>
     <div class="card"><b>Research &amp; plan</b><div class="d">Feature survey of Happy/CloudCLI/Terragon/Vibe Kanban/OpenCode; PLAN.md, FEATURES.md written</div></div>

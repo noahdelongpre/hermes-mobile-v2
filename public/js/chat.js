@@ -165,6 +165,15 @@ MODULES.chat = (() => {
     const bodyEl = appendMsg('hermes', '…');
     bodyEl._raw = '';
     const payload = { input: text, conversation: convo };
+    // TODO-verify: workstream I — model_options upstream shape unconfirmed by G/lead.
+    // Per-conversation model choice (persisted by slash.js picker in localStorage
+    // 'hm2.model.<convo>') → payload {model_options:{provider, name}}. THIS SEND
+    // PATH IS THE ONLY PLACE model_options is assembled (run_routes.js forwards
+    // the object verbatim to POST /v1/runs).
+    try {
+      const choice = JSON.parse(localStorage.getItem('hm2.model.' + convo) || 'null');
+      if (choice && choice.provider && choice.model) payload.model_options = { provider: choice.provider, name: choice.model };
+    } catch {}
     bus.emit('run:before-create', payload); // workstream J hook (attach.js)
     try {
       const { run_id } = await API.post('/api/run/create', payload);

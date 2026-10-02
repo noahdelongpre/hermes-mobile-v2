@@ -156,15 +156,15 @@ const server = http.createServer(async (req, res) => {
     const m = matchRoute(req.method === 'SSE' ? 'SSE' : req.method, urlPath);
     // allow explicit SSE via query or method GET on registered SSE routes
     const m2 = m || (req.method === 'GET' ? matchRoute('SSE', urlPath) : null);
-    if (!m2) return res.status(404).json({ error: 'no route' });
+    if (!m2) { res.writeHead(404, { 'content-type': 'application/json' }); return res.end(JSON.stringify({ error: 'no route' })); }
     let body = null;
     if (req.method === 'POST' || req.method === 'PATCH') {
       const ctype = req.headers['content-type'] || '';
       try {
         const buf = await readBody(req);
-        if (ctype.includes('application/json')) { try { body = JSON.parse(buf.toString() || '{}'); } catch { return res.status(400).json({ error: 'bad json' }); } }
+        if (ctype.includes('application/json')) { try { body = JSON.parse(buf.toString() || '{}'); } catch { res.writeHead(400, { 'content-type': 'application/json' }); return res.end(JSON.stringify({ error: 'bad json' })); } }
         else body = buf; // raw (uploads)
-      } catch (e) { return res.status(e.status || 500).json({ error: e.message }); }
+      } catch (e) { res.writeHead(e.status || 500, { 'content-type': 'application/json' }); return res.end(JSON.stringify({ error: e.message })); }
     }
     req.query = u.searchParams; req.body = body; req.params = m2.params;
     const wrap = { raw: res, // raw http response for streaming binaries (attach serving)
@@ -191,7 +191,7 @@ const server = http.createServer(async (req, res) => {
   let p = urlPath === '/' ? '/index.html' : urlPath;
   p = path.normalize(p).replace(/^(\.\.[\/\\])+/, '');
   const file = path.join(PUBLIC_DIR, p);
-  if (!file.startsWith(PUBLIC_DIR)) return res.status(403).end();
+  if (!file.startsWith(PUBLIC_DIR)) { res.writeHead(403); return res.end(); }
   fs.readFile(file, (err, data) => {
     if (err) { res.writeHead(404); return res.end('not found'); }
     res.writeHead(200, { 'content-type': MIME[path.extname(file).toLowerCase()] || 'application/octet-stream' });
