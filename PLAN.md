@@ -15,7 +15,7 @@ Conduit). Research summary: see FEATURES.md.
 ## Feature matrix (subagent workstreams)
 | # | Stream | Features | Dependencies |
 |---|--------|----------|--------------|
-| A | Core chat & rendering | streaming chat UI (SSE), markdown renderer, syntax highlighting, tool-call cards, diff rendering, thinking blocks, token/context display | — (own module) |
+| A | Core chat & rendering | streaming chat UI (SSE), markdown renderer, syntax highlighting, tool-call cards, diff rendering, thinking blocks, token/context display | — (own module) | ✅ done (unit-tested, S24 visual PASS) |
 | B | Sessions & history | multi-session store, resume runs, fork from any point, rename/archive/delete, drafts restore, auto-titled conversations | hard → handled by me with A |
 | C | Files | file tree, syntax-highlighted viewer, live editor, create/delete/move, context-size guard | shares style w/ A |
 | D | Git explorer | status/diff/stage/commit/branch switch UI; commits rendered as inline diff cards in chat when Hermes touches files | shares style + uses C's file tree |

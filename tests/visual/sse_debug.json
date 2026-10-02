@@ -1,0 +1,11 @@
+{
+ "res": {
+  "events": [
+   "{\"event\":\"message.delta\",\"run_id\":\"run_08dc3115cd4148079de62e177eb8c4cb\",\"timestamp\":1790909248.4543717,\"delta\":\"DYNO\"}",
+   "{\"event\":\"message.delta\",\"run_id\":\"run_08dc3115cd4148079de62e177eb8c4cb\",\"timestamp\":1790909248.4553742,\"delta\":\"-SSE\"}",
+   "{\"event\":\"reasoning.available\",\"run_id\":\"run_08dc3115cd4148079de62e177eb8c4cb\",\"timestamp\":1790909248.5006063,\"text\":\"DYNO-SSE\"}",
+   "{\"event\":\"run.completed\",\"run_id\":\"run_08dc3115cd4148079de62e177eb8c4cb\",\"timestamp\":1790909248.5209236,\"output\":\"DYNO-SSE\",\"usage\":{\"input_tokens\":18782,\"output_tokens\":124,\"total_tokens\":18906},\"completed\":true,\"partial\":false,\"interrupted\":false}"
+  ]
+ },
+ "msgs": []
+}

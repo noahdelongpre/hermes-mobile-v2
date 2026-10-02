@@ -167,7 +167,8 @@ const server = http.createServer(async (req, res) => {
       } catch (e) { return res.status(e.status || 500).json({ error: e.message }); }
     }
     req.query = u.searchParams; req.body = body; req.params = m2.params;
-    const wrap = { json: o => res.writeHead(200, { 'content-type': 'application/json' }) && res.end(JSON.stringify(o)),
+    const wrap = { raw: res, // raw http response for streaming binaries (attach serving)
+      json: o => res.writeHead(res.statusCode || 200, { 'content-type': 'application/json' }) && res.end(JSON.stringify(o)),
       status(s) { res.statusCode = s; return this; }, end: d => res.end(d),
       sse: () => { res.writeHead(200, { 'content-type': 'text/event-stream', 'cache-control': 'no-cache' }); res.write(': connected\n\n'); return {
         send: (obj) => res.write(`data: ${JSON.stringify(obj)}\n\n`),

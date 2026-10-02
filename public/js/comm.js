@@ -8,7 +8,8 @@ window.bus = (() => { const m = {}; return {
 window.API = {
   async fetch(path, opts = {}) {
     const r = await fetch(path, {
-      headers: opts.body && !(opts.body instanceof Buffer) && !(opts.body instanceof Blob) ? { 'content-type': 'application/json' } : {},
+      // JSON body => application/json. (Buffer guard only matters in node tests.)
+      headers: opts.body != null && !(typeof Blob !== 'undefined' && opts.body instanceof Blob) && !(typeof FormData !== 'undefined' && opts.body instanceof FormData) && !(opts.body instanceof Uint8Array) ? { 'content-type': 'application/json' } : {},
       credentials: 'include',
       ...opts,
       body: opts.body && typeof opts.body === 'object' && !(opts.body instanceof Blob) && !(opts.body instanceof FormData) ? JSON.stringify(opts.body) : opts.body,
@@ -19,6 +20,7 @@ window.API = {
   async json(path, opts) { const r = await this.fetch(path, opts); const j = await r.json().catch(() => ({})); if (!r.ok) throw Object.assign(new Error(j.error || r.statusText), { status: r.status }); return j; },
   post(path, body) { return this.json(path, { method: 'POST', body }); },
   // SSE subscription with auto-reconnect; onEvent(dataObj)
+  // SSE subscription. onEvent returning TRUE closes the stream (no auto-reconnect).
   sse(path, onEvent, onOpen) {
     let es = null, backoff = 500, closed = false;
     const connect = () => {
@@ -26,7 +28,15 @@ window.API = {
       es.onopen = () => { backoff = 500; onOpen && onOpen(); };
       es.onmessage = (e) => {
         if (!e.data) return;
-        try { onEvent(JSON.parse(e.data)); } catch { onEvent({ raw: e.data }); }
+        let ev;
+        try { ev = JSON.parse(e.data); } catch { ev = { raw: e.data }; }
+        let stop = false;
+        try { stop = onEvent(ev) === true; } catch (err) { console.error('sse handler', err); }
+        // Terminal events end the stream: run completed/failed/cancelled or server stream.closed.
+        const t = ev && ev.event;
+        if (stop || t === 'run.completed' || t === 'run.failed' || t === 'run.cancelled' || t === 'stream.closed') {
+          es.close(); closed = true;
+        }
       };
       es.onerror = () => { es.close(); if (closed) return; setTimeout(connect, backoff = Math.min(backoff * 2, 15000)); };
     };

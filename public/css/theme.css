@@ -27,3 +27,47 @@ pre{background:#14120e;border:1px solid var(--border);border-radius:8px;padding:
 .muted{color:var(--muted)} .err{color:var(--err)} .ok{color:var(--ok)}
 input,textarea,select{background:var(--card);border:1px solid var(--border);color:var(--fg);border-radius:8px;font:inherit;padding:10px;min-height:44px}
 .testing-badge{position:fixed;top:6px;right:8px;font-size:12px;color:var(--muted)}
+/* --- workstream A: markdown / diff / tool cards / thinking --- */
+.codeblock{position:relative}
+.codeblock .copy-btn{position:absolute;top:6px;right:6px;min-width:34px;min-height:34px;font-size:14px;padding:4px 8px;z-index:2;opacity:.85}
+.codeblock pre{margin:0}
+.tk-kw{color:var(--accent);font-weight:600}
+.tk-str{color:#9ecb7a}
+.tk-num{color:#d9a05e}
+.tk-cmt{color:#7a746b;font-style:italic}
+.tk-pun{color:#8f887d}
+.tk-fn{color:#7fb3d3}
+.tk-tag,.tk-attr{color:#d98f6c}
+.tk-sel{color:var(--accent)}
+.tasklist{list-style:none;padding-left:4px}
+.task-item{display:flex;gap:8px;align-items:flex-start;min-height:32px}
+.task-item input{width:20px;height:20px;accent-color:var(--ok)}
+.task-item.done span{text-decoration:line-through;color:var(--muted)}
+.tbl-wrap{overflow-x:auto}
+table{border-collapse:collapse;width:100%;font-size:14px}
+th,td{border:1px solid var(--border);padding:8px;text-align:left;min-width:32px}
+th{background:var(--card2);font-size:13px}
+.diffview{background:#14120e;border:1px solid var(--border);border-radius:8px;margin:8px 0;overflow:hidden}
+.diff-title{padding:6px 10px;font-size:12px;color:var(--muted);border-bottom:1px solid var(--border);font-family:var(--mono)}
+.diff-body{font-family:var(--mono);font-size:12px;line-height:1.45}
+.diff-ctx{color:var(--muted)}
+.diff-add{color:var(--ok);background:#1a3015}
+.diff-sub{color:var(--err);background:#331512}
+.diff-add,.diff-sub,.diff-ctx{display:flex;gap:6px;padding:1px 8px;white-space:pre-wrap}
+.diff-sign{min-width:14px;flex:none}
+.diff-gap{display:block;width:100%;min-height:36px;background:var(--card2);color:var(--accent);border:0;border-top:1px solid var(--border);border-bottom:1px solid var(--border);font:inherit;font-size:12px;text-align:center;cursor:pointer}
+.toolhead{display:flex;gap:8px;align-items:center;width:100%;min-height:44px;background:var(--card2);border:0;color:var(--fg);font:inherit;padding:6px 10px;border-radius:8px;cursor:pointer}
+.toolbody{margin-top:6px}
+.toolbody pre{max-height:50vh;overflow:auto;margin:0}
+.toolcard.running{border-color:var(--accent)}
+.toolstatus.ok,.toolstatus.done{color:var(--ok)} .toolstatus.failed,.toolstatus.error{color:var(--err)}
+.thinkhead{display:flex;gap:8px;align-items:center;width:100%;min-height:44px;background:transparent;border:0;color:var(--muted);font:inherit;font-size:14px;padding:6px 2px;cursor:pointer}
+.thinkprev{font-family:var(--mono);font-size:12px;color:var(--muted);max-height:40vh;overflow-y:auto;white-space:pre-wrap}
+.spinner{width:14px;height:14px;flex:none;border:2px solid var(--border);border-top-color:var(--accent);border-radius:50%;animation:spin .8s linear infinite}
+@keyframes spin{to{transform:rotate(360deg)}}
+.msg-body{overflow-wrap:anywhere}
+.msg-body ul,.msg-body ol{padding-left:22px}
+.md-codespan{background:#14120e;border:1px solid var(--border);border-radius:4px;padding:1px 5px;font-family:var(--mono);font-size:13px}
+.chiprow{display:flex;gap:6px;flex-wrap:wrap;margin:4px 0}
+.usage-chip{font-family:var(--mono)}
+.h-anchor{color:inherit;text-decoration:none}

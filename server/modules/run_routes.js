@@ -10,11 +10,11 @@ module.exports = { register(app) {
 
   app.post('/api/run/create', async (req, res) => {
     const { input, conversation, model_options, workspaceId } = req.body || {};
-    if (!input || typeof input !== 'string') return res.status(400).json({ error: 'input required' });
+    if (!input || typeof input !== 'string') { app.ctx.log('run/create REJECT body=', JSON.stringify(req.body || {}).slice(0, 200), 'ctype=', req.headers['content-type']); return res.status(400).json({ error: 'input required' }); }
     const body = { input }; if (conversation) body.conversation = conversation;
     if (model_options && typeof model_options === 'object') body.model_options = model_options;
     const r = await hermes.request('POST', '/v1/runs', { body, timeoutMs: 30000 });
-    if (r.status !== 200) return res.status(r.status >= 500 ? 502 : r.status).json({ error: r.json?.error || r.text.slice(0, 200) });
+    if (r.status !== 200 && r.status !== 202) return res.status(r.status >= 500 ? 502 : r.status).json({ error: r.json?.error || r.text.slice(0, 200) });
     // record mapping for history resumption
     try {
       const runsFile = path.join(stateDir, 'runs.json');
@@ -33,16 +33,25 @@ module.exports = { register(app) {
   app.get('/api/run/:id/events', async (req, res) => {
     const s = res.sse();
     const upstream = await hermes.request('GET', `/v1/runs/${encodeURIComponent(req.params.id)}/events`, { raw: true, timeoutMs: 3600000 });
-    if (upstream.statusCode !== 200) {
+    if (upstream.statusCode && upstream.statusCode !== 200) {
       s.send({ event: 'upstream.error', status: upstream.statusCode }); s.close(); return;
     }
+    let buf = '';
     upstream.on('data', c => {
-      const text = c.toString();
-      // pass frames through verbatim (they're already SSE-formatted data: lines)
-      for (const line of text.split('\n')) {
-        if (line.startsWith('data:') || line.startsWith(':')) res.write(line + '\n');
+      buf += c.toString();
+      // upstream frames end with blank line; forward complete frames via s.send (keep JSON intact)
+      if (!buf.includes('\n\n')) return;
+      const blocks = buf.split('\n\n');
+      buf = blocks.pop(); // keep trailing partial
+      for (const block of blocks) {
+        for (const line of block.split('\n')) {
+          if (line.startsWith('data:')) {
+            const payload = line.slice(5).trim();
+            try { s.send(JSON.parse(payload)); }
+            catch { s.send({ event: 'raw', payload }); }
+          }
+        }
       }
-      res.write('\n');
     });
     upstream.on('end', () => { s.send({ event: 'stream.closed' }); s.close(); });
     upstream.on('error', e => { s.send({ event: 'upstream.error', message: e.message }); s.close(); });
