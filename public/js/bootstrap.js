@@ -3,7 +3,6 @@
 window.MODULES = window.MODULES || {}; // keep modules registered before bootstrap (e.g. attach.js)
 const TABS = ['chat', 'files', 'git', 'term', 'board'];
 const appRoot = document.getElementById('app');
-const status = document.createElement('div'); status.className = 'testing-badge'; status.textContent = 'HMv2'; document.body.appendChild(status);
 
 async function loadModules() {
   for (const t of TABS) {

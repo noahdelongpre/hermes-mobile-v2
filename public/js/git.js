@@ -4,16 +4,36 @@
 // Backend: server/modules/git_routes.js. Vanilla JS only.
 window.MODULES = window.MODULES || {};
 MODULES.git = (() => {
-  const s = { ws: 'default', status: null, log: [], branch: null, diff: null, sel: new Set() };
+  const s = { ws: localStorage.getItem('hm2.gitws') || '', status: null, log: [], branch: null, diff: null, sel: new Set(), err: null };
 
   // ---- API ----
   const qw = () => `ws=${encodeURIComponent(s.ws)}`;
   async function refresh() {
-    const [status, log, branch] = await Promise.all([
-      API.json(`/api/git/status?${qw()}`),
-      API.json(`/api/git/log?${qw()}&n=20`),
-      API.json(`/api/git/branch?${qw()}`),
-    ]);
+    s.err = null;
+    if (!s.ws) {
+      try {
+        const j = await API.json('/api/fs/workspaces');
+        let first = null;
+        for (const w of (j.workspaces || [])) {
+          try { await API.json(`/api/git/status?ws=${encodeURIComponent(w.id)}`); first = w; break; }
+          catch (e) { if (!first) first = first; }
+        }
+        const gitws = first;
+        s.ws = gitws ? gitws.id : 'default';
+      } catch {}
+    }
+    let status, log, branch;
+    try {
+      [status, log, branch] = await Promise.all([
+        API.json(`/api/git/status?${qw()}`),
+        API.json(`/api/git/log?${qw()}&n=20`),
+        API.json(`/api/git/branch?${qw()}`),
+      ]);
+      localStorage.setItem('hm2.gitws', s.ws);
+    } catch (e) {
+      s.err = e.message || 'git unavailable';
+      return;
+    }
     s.status = status; s.log = log; s.branch = branch;
     // prune selection to files that still exist in status
     const have = new Set(status.files.map(f => f.file));
@@ -206,8 +226,31 @@ MODULES.git = (() => {
     }
     const head = el('div'); head.style.cssText = 'display:flex;align-items:center;gap:8px;margin-bottom:6px;flex-wrap:wrap';
     head.appendChild(el('h2', '', 'Git')); head.querySelector('h2').style.cssText = 'margin:0;font-size:18px';
+    if (s.ws) { const wchip = el('span', 'chip', '@ ' + s.ws); wchip.style.cssText = 'font-size:11px'; head.appendChild(wchip); }
     root.appendChild(head);
 
+    if (s.err) {
+      const ec = el('div', 'card');
+      const msg = el('div', 'err', s.err);
+      msg.style.marginBottom = '8px';
+      ec.appendChild(msg);
+      const hint = el('div', 'muted', 'Not a git repository in this workspace — pick one below.');
+      hint.style.cssText = 'font-size:12px;margin-bottom:8px';
+      ec.appendChild(hint);
+      const bar = el('div'); bar.style.cssText = 'display:flex;gap:6px;flex-wrap:wrap';
+      API.json('/api/fs/workspaces').then(j => {
+        for (const w of (j.workspaces || [])) {
+          const b = el('button', 'chip', w.id);
+          b.style.cssText = 'min-height:40px;font-size:12px;padding:2px 10px';
+          b.title = w.root;
+          b.onclick = () => { s.ws = w.id; localStorage.setItem('hm2.gitws', w.id); refreshAndRender(); };
+          bar.appendChild(b);
+        }
+      }).catch(() => {});
+      ec.appendChild(bar);
+      root.appendChild(ec);
+      await_placeholder(root); return;
+    }
     if (!s.status) { await_placeholder(root); return; } // refreshAndRender re-renders
     root.appendChild(statusCard(root));
     const d = diffCard(root); if (d) root.appendChild(d);

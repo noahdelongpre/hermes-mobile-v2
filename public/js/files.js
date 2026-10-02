@@ -28,6 +28,23 @@ MODULES.files = (() => {
     return n;
   }
 
+  function wsBarEl() {
+    const bar = el('div', 'fs-ws');
+    bar.style.cssText = 'display:flex;gap:6px;align-items:center;flex-wrap:wrap;margin:2px 0 6px';
+    const lbl = el('span', 'muted', 'ws:');
+    lbl.style.cssText = 'font-size:12px';
+    bar.appendChild(lbl);
+    API.json('/api/fs/workspaces').then(j => {
+      for (const w of (j.workspaces || [])) {
+        const b = el('button', 'chip fs-ws-seg' + (w.id === state.ws ? ' active' : ''), w.id);
+        b.style.cssText = 'min-height:36px;min-width:36px;font-size:12px;padding:2px 10px' + (w.id === state.ws ? ';border-color:var(--accent);color:var(--accent)' : '');
+        b.title = w.root;
+        b.onclick = () => { state.ws = w.id; state.path = ''; state.expanded.clear(); state.preview = null; state.page = 0; render(); };
+        bar.appendChild(b);
+      }
+    }).catch(() => {});
+    return bar;
+  }
   function crumbEl() {
     const bar = el('div', 'fs-crumb');
     bar.style.cssText = 'display:flex;gap:6px;align-items:center;flex-wrap:wrap;margin:4px 0 8px';
@@ -334,6 +351,7 @@ MODULES.files = (() => {
     const root = document.getElementById('app');
     if (!root) return;
     root.innerHTML = '';
+    root.appendChild(wsBarEl());
     root.appendChild(crumbEl());
     root.appendChild(toolbarEl());
     if (state.search) searchEl(root);
@@ -346,14 +364,16 @@ MODULES.files = (() => {
     try {
       const j = await list(state.path);
       listCard.innerHTML = '';
-      // size the scroll region FIRST, then page to what actually fits so no row
-      // is clipped-but-positioned past the bottom nav (S24 layout check).
-      clampList(listCard);
-      const cap = fitPage(listCard, j).capacity;
+      // page to what fits, then size the scroll region ONCE rows are in the DOM —
+      // clamping before rows exist freezes the box at its 180px floor (the
+      // 'files tab feels broken / tiny' bug).
+      const fit = fitPage(listCard, j).capacity;
+      const cap = Math.max(fit, 8); // never shrink below 8 rows just because the box started small
       for (const d of j.dirs.slice(0, cap)) rowFor(listCard, d.name, true, { path: j.path || state.path });
       for (const f of j.files.slice(0, Math.max(0, cap - j.dirs.length))) rowFor(listCard, f.name, false, { path: j.path || state.path });
       if (!j.dirs.length && !j.files.length) listCard.appendChild(el('div', 'muted', '(empty directory)'));
       if (j.dirs.length + j.files.length > cap) listCard.appendChild(pagerEl(listCard, j.dirs, j.files, cap));
+      clampList(listCard);
     } catch (e) {
       listCard.innerHTML = '';
       listCard.appendChild(el('div', 'err', 'load failed: ' + e.message));
@@ -407,13 +427,18 @@ MODULES.files = (() => {
   // nav, so list rows never render underneath the nav (S24 touch-target check).
   function clampList(listCard) {
     requestAnimationFrame(() => {
-      const nav = document.querySelector('.bottom-nav');
-      const navTop = nav ? nav.getBoundingClientRect().top : window.innerHeight - 56;
+      // the tab pane itself scrolls now (#app>div) — measure the card's position
+      // INSIDE the scroll content (rect.top depends on scroll position, not layout)
+      const pane = document.querySelector('#app > div');
+      const paneTop = pane ? pane.getBoundingClientRect().top : 0;
       const top = listCard.getBoundingClientRect().top;
-      const h = Math.max(180, window.innerHeight - navTop - top - 8);
-      listCard.style.maxHeight = h + 'px';
+      const h = Math.max(300, window.innerHeight - paneTop - top - 8); // visible space from card top to pane bottom
+      listCard.style.maxHeight = Math.max(300, h) + 'px';
       listCard.style.overflowY = 'auto';
       listCard.style.paddingBottom = '12px';
+      if (top > window.innerHeight) { // card fully below the fold (user scrolled/clamped already?) — just size it generously
+        listCard.style.maxHeight = '70vh';
+      }
     });
   }
 

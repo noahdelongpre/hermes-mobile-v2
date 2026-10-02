@@ -9,9 +9,11 @@ module.exports = { register(app) {
   const { hermes, stateDir, log } = app.ctx;
 
   app.post('/api/run/create', async (req, res) => {
-    const { input, conversation, session_id, model_options, workspaceId } = req.body || {};
+    const { input, conversation, session_id, model, provider, model_options, workspaceId } = req.body || {};
     if (!input || typeof input !== 'string') { app.ctx.log('run/create REJECT body=', JSON.stringify(req.body || {}).slice(0, 200), 'ctype=', req.headers['content-type']); return res.status(400).json({ error: 'input required' }); }
     const body = { input }; if (session_id) body.session_id = session_id; if (conversation) body.conversation = conversation;
+    if (model) body.model = String(model);
+    if (provider) body.provider = String(provider);
     if (model_options && typeof model_options === 'object') body.model_options = model_options;
     const r = await hermes.request('POST', '/v1/runs', { body, timeoutMs: 30000 });
     if (r.status !== 200 && r.status !== 202) return res.status(r.status >= 500 ? 502 : r.status).json({ error: r.json?.error || r.text.slice(0, 200) });

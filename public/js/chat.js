@@ -196,7 +196,11 @@ MODULES.chat = (() => {
     // the object verbatim to POST /v1/runs).
     try {
       const choice = JSON.parse(localStorage.getItem('hm2.model.' + convo) || 'null');
-      if (choice && choice.provider && choice.model) payload.model_options = { provider: choice.provider, name: choice.model };
+      // /v1/runs request-level fields: model + provider (Hermes-native endpoint always honors),
+      // model_options = reasoning controls (reasoning_effort verified in api-server docs)
+      if (choice && choice.provider && choice.model) { payload.model = choice.model; payload.provider = choice.provider; }
+      const effort = localStorage.getItem('hm2.effort.' + convo);
+      if (effort) payload.model_options = { reasoning_effort: effort };
     } catch {}
     bus.emit('run:before-create', payload); // workstream J hook (attach.js)
     try {

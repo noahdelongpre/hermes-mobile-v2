@@ -153,6 +153,27 @@ MODULES.slash = (() => {
         list.appendChild(btn);
       }
     }
+    // --- reasoning effort picker (request-scoped model_options.reasoning_effort) ---
+    const EFFORTS = [['auto', null], ['minimal', 'minimal'], ['low', 'low'], ['medium', 'medium'], ['high', 'high']];
+    const grpE = document.createElement('div');
+    grpE.className = 'model-prov';
+    grpE.style.cssText = 'margin:10px 0 2px;font-size:12px;color:var(--muted)';
+    grpE.textContent = 'reasoning effort';
+    list.appendChild(grpE);
+    const curEffort = localStorage.getItem('hm2.effort.' + currentConvo()) || '';
+    for (const [label, value] of EFFORTS) {
+      const be = document.createElement('button');
+      be.type = 'button';
+      be.className = 'btn effort-item';
+      be.style.cssText = 'display:inline-block;margin:3px 6px 3px 0;min-height:40px;padding:4px 12px' + (value === curEffort ? ';border-color:var(--accent);color:var(--accent)' : '');
+      be.textContent = value === curEffort ? label + ' ✓' : label;
+      be.onclick = () => {
+        try { if (value) localStorage.setItem('hm2.effort.' + currentConvo(), value); else localStorage.removeItem('hm2.effort.' + currentConvo()); } catch {}
+        toast('reasoning → ' + label);
+        closeSheet();
+      };
+      list.appendChild(be);
+    }
     const closeBtn = document.createElement('button');
     closeBtn.type = 'button';
     closeBtn.className = 'btn model-close'; closeBtn.textContent = '✕ close';

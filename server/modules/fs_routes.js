@@ -42,6 +42,11 @@ module.exports = { register(app) {
     return abs;
   }
 
+  app.get('/api/fs/workspaces', async (req, res) => {
+    const list = [];
+    for (const [id, root] of app.ctx.workspaces) list.push({ id, root });
+    return res.status(200).json({ workspaces: list });
+  });
   app.get('/api/fs/list', async (req, res) => {
     const r = wsRes(req, res); if (!r) return;
     let st;
