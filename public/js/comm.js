@@ -58,9 +58,79 @@ window.confirmSheet = (title, bodyHtml, buttons) => new Promise(resolve => {
   });
   document.body.appendChild(s);
 });
+
 window.fuzzy = (needle, items, keyOf = x => x) => {
   const n = needle.toLowerCase();
   return items.map(it => { const k = keyOf(it).toLowerCase(); let i = 0, score = 0;
     for (const c of n) { i = k.indexOf(c, i); if (i < 0) return null; score += i === 0 ? 2 : 1; i++; }
     return { it, score }; }).filter(Boolean).sort((a, b) => b.score - a.score).map(x => x.it).slice(0, 12);
 };
+
+// ---- pull-to-refresh (custom) ---------------------------------------------
+// Standalone/home-screen installs never show Chrome's native overscroll refresh,
+// so the app implements its own: drag down >=78px from the top of any scroll
+// region (tab pane, chat timeline) → location.reload() to pick up new assets.
+(() => {
+  const PULL_ARM = 78, RESIST = 0.32, SHOW = -40;
+  let startY = 0, pane = null, armed = false, pulling = false, indicator = null;
+
+  const ensureIndicator = () => indicator || ((indicator = document.createElement('div')).id = 'ptr-indicator',
+    indicator.style.cssText = 'position:fixed;top:-40px;left:50%;transform:translateX(-50%);'
+      + 'width:34px;height:34px;border-radius:50%;background:var(--accent);z-index:98;'
+      + 'display:flex;align-items:center;justify-content:center;font-size:17px;color:#171511;'
+      + 'box-shadow:0 2px 10px rgba(0,0,0,.5);transition:top .12s ease;pointer-events:none',
+    indicator.textContent = '⟳', document.body.appendChild(indicator), indicator);
+  const hide = () => { if (indicator) { indicator.remove(); indicator = null; } };
+  const reset = () => { armed = false; pulling = false; pane = null; };
+
+  function scrollablePanes() {
+    const tl = document.querySelector('.scrollpane');
+    const panes = [...document.querySelectorAll('#app > div')];
+    if (tl) panes.push(tl);
+    return panes.filter(Boolean);
+  }
+
+  document.addEventListener('touchstart', e => {
+    if (e.touches.length !== 1) { reset(); return; }
+    const t = e.touches[0];
+    pane = null;
+    for (const p of scrollablePanes()) {
+      if (p.contains(e.target) && p.scrollTop <= 2) { pane = p; break; }
+    }
+    armed = !!pane;
+    startY = t.clientY;
+    pulling = false;
+  }, { passive: true });
+
+  document.addEventListener('touchmove', e => {
+    if (!armed || !pane) return;
+    const dy = e.touches[0].clientY - startY;
+    if (!pulling) {
+      if (dy < 14 || pane.scrollTop > 4) return;   // require clear downward intent at top
+      if (dy < 0) return;
+      pulling = true;
+    }
+    const d = Math.max(0, dy * RESIST);
+    const ind = ensureIndicator();
+    ind.style.top = (SHOW + d) + 'px';
+    ind.style.transform = 'translateX(-50%) rotate(' + (d * 2) + 'deg)';
+    if (dy > PULL_ARM) ind.style.transform = 'translateX(-50%) rotate(540deg) scale(1.15)';
+  }, { passive: true });
+
+  document.addEventListener('touchend', e => {
+    if (pulling) {
+      const dy = (e.changedTouches[0] && e.changedTouches[0].clientY - startY) || 0;
+      if (dy >= PULL_ARM) {                         // spinner fling, then reload
+        const ind = ensureIndicator();
+        ind.style.transition = 'transform .4s ease, top .4s ease';
+        ind.style.transform = 'translateX(-50%) rotate(720deg)';
+        ind.style.top = '-58px';
+        setTimeout(() => location.reload(), 170);
+        reset();
+        return;
+      }
+    }
+    hide(); reset();
+  }, { passive: true });
+  document.addEventListener('touchcancel', () => { hide(); reset(); }, { passive: true });
+})();
