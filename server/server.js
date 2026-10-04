@@ -152,6 +152,14 @@ function readBody(req, limit = 21 * 1024 * 1024) {
 const server = http.createServer(async (req, res) => {
   const u = new URL(req.url, 'http://x');
   const urlPath = u.pathname;
+  // /api/health is the monitoring endpoint (no sensitive data) — always open so
+  // container healthchecks and uptime monitors work under basic auth.
+  if (urlPath === '/api/health') {
+    let upstream = false;
+    try { upstream = (await hermes.health()) === true; } catch {}
+    res.writeHead(200, { 'content-type': 'application/json' });
+    return res.end(JSON.stringify({ upstream }));
+  }
   if (!authOk(req)) return challenge(res);
 
   // API dispatch
