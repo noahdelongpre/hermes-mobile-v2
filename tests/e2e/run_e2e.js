@@ -15,14 +15,14 @@ function call(method, p, body) {
   return new Promise((res, rej) => {
     const data = body != null ? (typeof body === 'string' ? body : JSON.stringify(body)) : null;
     const req = http.request(BASE + (p.startsWith('/') ? p : '/' + p), {
-      method, headers: { ...(data ? { 'content-type': 'application/json', 'content-length': Buffer.byteLength(data) } : {}) },
+      method, headers: { ...(process.env.HMV2_BASIC ? { authorization: 'Basic ' + Buffer.from(process.env.HMV2_BASIC).toString('base64') } : {}), ...(data ? { 'content-type': 'application/json', 'content-length': Buffer.byteLength(data) } : {}) },
     }, r => { let b = ''; r.on('data', c => b += c); r.on('end', () => res({ s: r.statusCode, t: b, j: (() => { try { return JSON.parse(b); } catch { return null; } })() })); });
     req.on('error', (e) => res({ s: 0, t: '', j: null, err: e.code || e.message })); if (data) req.write(data); req.end();
   });
 }
 async function sseFrames(p, ms) {
   return await new Promise((resolve) => {
-    const req = http.get(BASE + p, r => {
+    const req = http.get(BASE + p, { headers: process.env.HMV2_BASIC ? { authorization: 'Basic ' + Buffer.from(process.env.HMV2_BASIC).toString('base64') } : {} }, r => {
       let buf = ''; const frames = [];
       const tmo = setTimeout(() => { req.destroy(); resolve(frames); }, ms);
       r.on('data', c => {

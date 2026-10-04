@@ -1,0 +1,29 @@
+# hermes-mobile-v2 — dev/parity container on TheFridge
+# Secrets: create C:\git\hermes-mobile-v2\.env (gitignored) with:
+#   HERMES_KEY=<API_SERVER_KEY value from ~/.hermes/.env>
+#   HMV2_AUTH_PASS=<app basic-auth password>
+services:
+  hermes-mobile-v2:
+    build: .
+    image: hermes-mobile-v2:latest
+    container_name: hermes-mobile-v2
+    restart: unless-stopped
+    ports:
+      - "8124:8123"
+    environment:
+      - PORT=8123
+      - STATE_DIR=/data/state
+      - AUTH_USER=${HMV2_AUTH_USER:-noahd}
+      - AUTH_PASS=${HMV2_AUTH_PASS:-hermes2026}
+      # gateway runs on this same Windows host
+      - HERMES_URL=${HERMES_URL:-http://host.docker.internal:8642}
+      - HERMES_KEY=${HERMES_KEY:-}
+      - FS_ROOT=${FS_ROOT:-/data/fs}
+    volumes:
+      - hmv2-state:/data/state
+      - C:/git:/data/fs
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+
+volumes:
+  hmv2-state:

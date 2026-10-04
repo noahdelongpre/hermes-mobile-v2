@@ -11,7 +11,7 @@ const PORT = process.env.PORT || 8124;
 const AUTH_USER = process.env.AUTH_USER || 'noahd';
 const AUTH_PASS = process.env.AUTH_PASS || '';
 const PUBLIC_DIR = path.join(__dirname, '..', 'public');
-const STATE_DIR = path.join(__dirname, '..', 'state');
+const STATE_DIR = process.env.STATE_DIR ? path.resolve(process.env.STATE_DIR) : path.join(__dirname, '..', 'state');
 fs.mkdirSync(STATE_DIR, { recursive: true });
 
 // --- auth (basic) ---------------------------------------------------
