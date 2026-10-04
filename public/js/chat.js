@@ -185,9 +185,21 @@ MODULES.chat = (() => {
     const bodyEl = appendMsg('hermes', '…');
     bodyEl._raw = '';
     const payload = { input: text };
-    // session spine (workstream B): if a real session is active, bind the run to
-    // it (session_id → upstream persists history in that session). Fallback for
-    // no-session state: legacy conversation label so runs stay grouped pre-B.
+    // session spine (workstreams B): bind every send to a REAL upstream session
+    // (session_id → history persists in one session). If none is active yet,
+    // create one now and switch to it instead of falling back to an ephemeral
+    // conversation label (each response would otherwise start a fresh call).
+    if (!convo) {
+      try {
+        const j = await API.json('/api/session', { method: 'POST', body: {} });
+        const id = j.session && j.session.id;
+        if (id) {
+          convo = id;
+          try { localStorage.setItem('hm2.session', id); } catch {}
+          bus.emit('session:switch', { conversation: id, session_id: id });
+        }
+      } catch {}
+    }
     if (convo) payload.session_id = convo; else payload.conversation = 'hm2-main';
     // TODO-verify: workstream I — model_options upstream shape unconfirmed by G/lead.
     // Per-conversation model choice (persisted by slash.js picker in localStorage

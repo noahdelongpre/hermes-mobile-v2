@@ -103,6 +103,49 @@ MODULES.slash = (() => {
     try { localStorage.setItem(MODEL_KEY(convo), JSON.stringify(pick)); } catch {}
   }
 
+  const EFFORTS = [['default', ''], ['minimal', 'minimal'], ['low', 'low'], ['medium', 'medium'], ['high', 'high'], ['xhigh', 'xhigh'], ['max', 'max'], ['ultra', 'ultra']];
+  const effortOf = (convo) => localStorage.getItem('hm2.effort.' + (convo || currentConvo())) || '';
+
+  // Effort-only sheet (shown right after a model pick, or from the current-model block)
+  function openEffortSheet(convo, skipToast) {
+    closeSheet();
+    sheet = document.createElement('div');
+    sheet.className = 'sheet open effort-sheet';
+    sheet.style.cssText = 'max-height:60vh;z-index:71;padding:12px 16px calc(12px + env(safe-area-inset-bottom,0px))';
+    const head = document.createElement('div');
+    head.style.cssText = 'display:flex;justify-content:space-between;align-items:center;margin-bottom:8px';
+    const h3 = document.createElement('h3'); h3.style.cssText = 'margin:0'; h3.textContent = 'Reasoning effort';
+    head.appendChild(h3);
+    const cur = loadChoice(convo);
+    const lbl = document.createElement('span'); lbl.className = 'chip';
+    lbl.textContent = cur ? (cur.provider + ' / ' + cur.model) : 'no model picked';
+    head.appendChild(lbl);
+    sheet.appendChild(head);
+    const list2 = document.createElement('div'); list2.className = 'effort-list';
+    sheet.appendChild(list2);
+    const active = effortOf(convo);
+    for (const [label, value] of EFFORTS) {
+      const b = document.createElement('button');
+      b.type = 'button'; b.className = 'btn effort-item';
+      b.style.cssText = 'display:block;width:100%;text-align:left;margin:3px 0;min-height:44px;padding:6px 12px' + (value === active ? ';border-color:var(--accent);color:var(--accent)' : '');
+      b.textContent = value === active ? label + '  ✓' : label;
+      b.onclick = () => {
+        try { if (value) localStorage.setItem('hm2.effort.' + convo, value); else localStorage.removeItem('hm2.effort.' + convo); } catch {}
+        toast('reasoning → ' + label);
+        closeSheet();
+      };
+      list2.appendChild(b);
+    }
+    const closeB = document.createElement('button');
+    closeB.type = 'button'; closeB.className = 'btn'; closeB.textContent = '✕ close';
+    closeB.style.cssText = 'width:100%;margin-top:8px;min-height:44px';
+    closeB.onclick = closeSheet;
+    sheet.appendChild(closeB);
+    sheet.addEventListener('click', e => { if (e.target === sheet) closeSheet(); });
+    document.body.appendChild(sheet);
+    if (skipToast !== false) { /* toast handled by caller */ }
+  }
+
   async function openPicker() {
     closeSheet();
     let data = null;
@@ -123,6 +166,38 @@ MODULES.slash = (() => {
     sheet.appendChild(head);
     const list = document.createElement('div'); list.className = 'model-list';
     sheet.appendChild(list);
+    // --- current model + effort at the TOP (fast level switching) ---
+    {
+      const cur2 = loadChoice(currentConvo());
+      const ef = effortOf(currentConvo());
+      const block = document.createElement('div');
+      block.className = 'card model-current-card';
+      block.style.cssText = 'margin:2px 0 10px;padding:10px 12px';
+      const lbl2 = document.createElement('div');
+      lbl2.style.cssText = 'font-weight:700;font-size:15px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap';
+      lbl2.textContent = cur2 ? (cur2.model) : 'upstream default';
+      const sub2 = document.createElement('div');
+      sub2.className = 'muted'; sub2.style.cssText = 'font-size:12px;margin:2px 0 8px';
+      sub2.textContent = (cur2 ? cur2.provider : 'no model chosen') + (ef ? ' · effort ' + ef : ' · default effort');
+      block.append(lbl2, sub2);
+      const chips = document.createElement('div');
+      chips.style.cssText = 'display:flex;gap:6px;flex-wrap:wrap';
+      for (const [label, value] of EFFORTS) {
+        const cb = document.createElement('button');
+        cb.className = 'chip effort-chip';
+        cb.style.cssText = 'min-height:36px;padding:4px 10px;font-size:12px' + (value === ef ? ';border-color:var(--accent);color:var(--accent)' : '');
+        cb.textContent = label;
+        cb.onclick = () => {
+          try { if (value) localStorage.setItem('hm2.effort.' + currentConvo(), value); else localStorage.removeItem('hm2.effort.' + currentConvo()); } catch {}
+          toast('reasoning → ' + label);
+          closeSheet();
+        };
+        chips.appendChild(cb);
+      }
+      block.appendChild(chips);
+      sheet.insertBefore(block, list.parentNode ? list : null); // put above the scrollable list
+    }
+
     if (!providers.length) {
       const none = document.createElement('div'); none.className = 'muted';
       none.style.padding = '12px 2px';
@@ -147,32 +222,12 @@ MODULES.slash = (() => {
           const pick = { provider: p.slug || p.name || '', model: m };
           saveChoice(currentConvo(), pick);
           bus.emit('model:selected', pick);
-          toast('model → ' + pick.provider + ' / ' + pick.model);
-          closeSheet(); // never adds a user message to the timeline (INTEGRATION.md §7)
+          toast('model → ' + pick.provider.split('/')[0] + ' / ' + pick.model);
+          openEffortSheet(currentConvo(), false); // chain: pick → effort (never adds a user message)
         };
+        if (cur && cur.provider === (p.slug || p.name || '') && cur.model === m) btn.style.borderColor = 'var(--accent)';
         list.appendChild(btn);
       }
-    }
-    // --- reasoning effort picker (request-scoped model_options.reasoning_effort) ---
-    const EFFORTS = [['auto', null], ['minimal', 'minimal'], ['low', 'low'], ['medium', 'medium'], ['high', 'high']];
-    const grpE = document.createElement('div');
-    grpE.className = 'model-prov';
-    grpE.style.cssText = 'margin:10px 0 2px;font-size:12px;color:var(--muted)';
-    grpE.textContent = 'reasoning effort';
-    list.appendChild(grpE);
-    const curEffort = localStorage.getItem('hm2.effort.' + currentConvo()) || '';
-    for (const [label, value] of EFFORTS) {
-      const be = document.createElement('button');
-      be.type = 'button';
-      be.className = 'btn effort-item';
-      be.style.cssText = 'display:inline-block;margin:3px 6px 3px 0;min-height:40px;padding:4px 12px' + (value === curEffort ? ';border-color:var(--accent);color:var(--accent)' : '');
-      be.textContent = value === curEffort ? label + ' ✓' : label;
-      be.onclick = () => {
-        try { if (value) localStorage.setItem('hm2.effort.' + currentConvo(), value); else localStorage.removeItem('hm2.effort.' + currentConvo()); } catch {}
-        toast('reasoning → ' + label);
-        closeSheet();
-      };
-      list.appendChild(be);
     }
     const closeBtn = document.createElement('button');
     closeBtn.type = 'button';
